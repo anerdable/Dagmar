@@ -8,13 +8,14 @@ import { isGenericMessageEvent } from './utils/helpers'
 dotenv.config();
 export const SLACK_BOT_TOKEN = process.env.SLACK_BOT_TOKEN;
 export const SLACK_SIGNING_SECRET = process.env.SLACK_SIGNING_SECRET;
+export const SLACK_APP_TOKEN = process.env.SLACK_APP_TOKEN;
 
 const app = new App({
   token: SLACK_BOT_TOKEN,
   signingSecret: SLACK_SIGNING_SECRET,
   logLevel: LogLevel.DEBUG,
   socketMode: true, 
-  appToken: process.env.SLACK_APP_TOKEN 
+  appToken: SLACK_APP_TOKEN
 });
 
 // Listens to incoming messages that contain "hello"
