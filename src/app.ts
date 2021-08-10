@@ -56,11 +56,12 @@ cron.schedule(
   }
 );
 
+//DENNA VILL VI FORMATTERA SÅ UTSKRIFTEN BLIR SNYGGARE
 cron.schedule(
-  '50 15 * * Tuesday',
+  '59 15 * * Tuesday',
   () => {
     let themedays = GetEventsWithinWeek();
-    let message = 'Godmorgon måndag! \n';
+    let message = 'Godmorgon måndag! :frog: \n';
     themedays.forEach((element) => {
       message += element.title + ' \n';
     });
