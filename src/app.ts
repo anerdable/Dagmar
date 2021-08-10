@@ -2,6 +2,7 @@ import { App, LogLevel } from '@slack/bolt';
 import dotenv from 'dotenv';
 // import "./utils/env";
 
+import { GetListOfWeekdays, GetMarsDays,  } from './holidays/themedayController';
 import { isGenericMessageEvent } from './utils/helpers';
 
 dotenv.config();
@@ -77,6 +78,66 @@ app.action('button_click', async ({ body, ack, say }) => {
   await ack();
   await say(`<@${body.user.id}> clicked the button`);
 });
+
+  // Listens to incoming messages that contain "hello"
+  app.message('march', async ({ message, say }) => {
+    // Filter out message events with subtypes (see https://api.slack.com/events/message)
+    // Is there a way to do this in listener middleware with current type system?
+    
+    console.log('GET THE DAYS!!!!!!!');
+    // const _monthDays = GetDaysWithinMonth(3);
+    const days = GetMarsDays(); // Mars
+    let daysMessage = "These are the themedays in March!  -->"; 
+    days.forEach(day => {
+      daysMessage = daysMessage + ` ${ day.title} ${ day.date.toDateString() }, `;
+    });
+  
+    if (!isGenericMessageEvent(message)) return;
+    // say() sends a message to the channel where the event was triggered
+  
+    await say({
+      blocks: [
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: `${daysMessage}!`
+          },
+        }
+      ],
+      text: `HEJ <@${message.user}>!`
+    });
+  });
+  
+  app.message('mondays', async ({ message, say }) => {
+    // Filter out message events with subtypes (see https://api.slack.com/events/message)
+    // Is there a way to do this in listener middleware with current type system?
+    
+    console.log('get mondays');
+    const mondays = GetListOfWeekdays(1); // Mondays
+    let daysMessage = "Varsågod, här kommer några måndagar -->"; 
+  
+  
+    mondays.forEach(day => {
+      daysMessage = daysMessage + ` ${day.toDateString() }, `;
+    });
+  
+    if (!isGenericMessageEvent(message)) return;
+    // say() sends a message to the channel where the event was triggered
+  
+    await say({
+      blocks: [
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: `${daysMessage}!`
+          },
+        }
+      ],
+      text: `HEJ <@${message.user}>!`
+    });
+  });
 
 (async () => {
   // Start your app
