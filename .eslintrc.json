@@ -29,6 +29,10 @@
     "sort-imports": [
       "error",
       { "ignoreDeclarationSort": true, "ignoreCase": true }
-    ]
+    ],
+    "no-let": {
+      "allowLocalMutation": true,
+      "ignorePattern?": "string | Array<string>"
+    }
   }
 }
