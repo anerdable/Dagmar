@@ -2,7 +2,11 @@ import { App, LogLevel } from '@slack/bolt';
 import dotenv from 'dotenv';
 // import "./utils/env";
 
-import { GetListOfWeekdays, GetMarsDays,  } from './holidays/themedayController';
+import {
+  GetListOfWeekdays,
+  GetMarsDays,
+  GetEventsWithinWeek,
+} from './holidays/themedayController';
 import { isGenericMessageEvent } from './utils/helpers';
 
 dotenv.config();
@@ -38,6 +42,43 @@ app.message('hi', async ({ client }) => {
   }
 });
 
+var cron = require('node-cron');
+
+cron.schedule(
+  '0 9 * * Monday',
+  () => {
+    app.client.chat.postMessage({ channel: channelId, text: 'aboooo' });
+    console.log('Running a job at 01:00 at Europe/Stockholm timezone');
+  },
+  {
+    scheduled: true,
+    timezone: 'Europe/Stockholm',
+  }
+);
+
+cron.schedule(
+  '50 15 * * Tuesday',
+  () => {
+    let themedays = GetEventsWithinWeek();
+    let message = 'Godmorgon måndag! \n';
+    themedays.forEach((element) => {
+      message += element.title + ' \n';
+    });
+
+    app.client.chat.postMessage({
+      channel: channelId,
+      text: message,
+    });
+
+    console.log(message);
+    console.log('Running a job at 01:00 at Europe/Stockholm timezone');
+  },
+  {
+    scheduled: true,
+    timezone: 'Europe/Stockholm',
+  }
+);
+
 app.event('app_mention', async ({ event, say }) => {
   await say({
     text: `:wave: <@${event.user}> Hej, jag heter Dagmar och jag hjälper dig hålla reda på olika temadag(m)ar!`,
@@ -57,7 +98,7 @@ app.message('hello', async ({ message, say }) => {
         type: 'section',
         text: {
           type: 'mrkdwn',
-          text: `Tjabba tjena hallå <@${message.user}>!`,
+          text: `Tjabba tjena hallå, <@${message.user}>!`,
         },
         accessory: {
           type: 'button',
@@ -79,65 +120,64 @@ app.action('button_click', async ({ body, ack, say }) => {
   await say(`<@${body.user.id}> clicked the button`);
 });
 
-  // Listens to incoming messages that contain "hello"
-  app.message('march', async ({ message, say }) => {
-    // Filter out message events with subtypes (see https://api.slack.com/events/message)
-    // Is there a way to do this in listener middleware with current type system?
-    
-    console.log('GET THE DAYS!!!!!!!');
-    // const _monthDays = GetDaysWithinMonth(3);
-    const days = GetMarsDays(); // Mars
-    let daysMessage = "These are the themedays in March!  -->"; 
-    days.forEach(day => {
-      daysMessage = daysMessage + ` ${ day.title} ${ day.date.toDateString() }, `;
-    });
-  
-    if (!isGenericMessageEvent(message)) return;
-    // say() sends a message to the channel where the event was triggered
-  
-    await say({
-      blocks: [
-        {
-          type: 'section',
-          text: {
-            type: 'mrkdwn',
-            text: `${daysMessage}!`
-          },
-        }
-      ],
-      text: `HEJ <@${message.user}>!`
-    });
+// Listens to incoming messages that contain "hello"
+app.message('march', async ({ message, say }) => {
+  // Filter out message events with subtypes (see https://api.slack.com/events/message)
+  // Is there a way to do this in listener middleware with current type system?
+
+  console.log('GET THE DAYS!!!!!!!');
+  // const _monthDays = GetDaysWithinMonth(3);
+  const days = GetMarsDays(); // Mars
+  let daysMessage = 'These are the themedays in March!  -->';
+  days.forEach((day) => {
+    daysMessage = daysMessage + ` ${day.title} ${day.date.toDateString()}, `;
   });
-  
-  app.message('mondays', async ({ message, say }) => {
-    // Filter out message events with subtypes (see https://api.slack.com/events/message)
-    // Is there a way to do this in listener middleware with current type system?
-    
-    console.log('get mondays');
-    const mondays = GetListOfWeekdays(1); // Mondays
-    let daysMessage = "Varsågod, här kommer några måndagar -->"; 
-  
-  
-    mondays.forEach(day => {
-      daysMessage = daysMessage + ` ${day.toDateString() }, `;
-    });
-  
-    if (!isGenericMessageEvent(message)) return;
-    // say() sends a message to the channel where the event was triggered
-  
-    await say({
-      blocks: [
-        {
-          type: 'section',
-          text: {
-            type: 'mrkdwn',
-            text: `${daysMessage}!`
-          },
-        }
-      ],
-      text: `HEJ <@${message.user}>!`
-    });
+
+  if (!isGenericMessageEvent(message)) return;
+  // say() sends a message to the channel where the event was triggered
+
+  await say({
+    blocks: [
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `${daysMessage}!`,
+        },
+      },
+    ],
+    text: `HEJ <@${message.user}>!`,
   });
+});
+
+app.message('mondays', async ({ message, say }) => {
+  // Filter out message events with subtypes (see https://api.slack.com/events/message)
+  // Is there a way to do this in listener middleware with current type system?
+
+  console.log('get mondays');
+  const mondays = GetListOfWeekdays(1); // Mondays
+  let daysMessage = 'Varsågod, här kommer några måndagar -->';
+
+  mondays.forEach((day) => {
+    daysMessage = daysMessage + ` ${day.toDateString()}, `;
+  });
+
+  if (!isGenericMessageEvent(message)) return;
+  // say() sends a message to the channel where the event was triggered
+
+  await say({
+    blocks: [
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `${daysMessage}!`,
+        },
+      },
+    ],
+    text: `HEJ <@${message.user}>!`,
+  });
+});
 
 (async () => {
   // Start your app
